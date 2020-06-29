@@ -1,0 +1,12 @@
+{% import 'OroProductBundle:Product/RelatedItems:macros.html.twig' as relatedItemsUI %}
+<div class="related-items-widget">
+    {{ relatedItemsUI.renderRelatedItemButton(
+        path('ibnab_customrelated_possible_products_for_customrelated_products', {'id': entity.id}),
+        'ibnab.customrelated.widgets.select_products.label'|trans,
+        'ibnab.customrelated.widgets.select_products.title'|trans({'{{ sku }}': entity.sku, '{{ name }}': entity.name}),
+        relatedProductsLimit,
+        '#productAppendCustomRelated',
+        '#productRemoveCustomRelated',
+        gridName
+    ) }}
+</div>

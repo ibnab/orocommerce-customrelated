@@ -1,0 +1,34 @@
+{% import 'OroDataGridBundle::macros.html.twig' as dataGrid %}
+{% set gridName = 'products-customrelated-products-edit' %}
+{% set relatedGridParams = {
+    relatedItemsIds: get_customrelated_products_ids(entity),
+    _parameters: {
+        data_in: [],
+        data_not_in: []
+    }
+} %}
+{% if form.appendCustomRelated.vars.value is not empty %}
+    {% set relatedGridParams = relatedGridParams|merge({
+        _parameters: relatedGridParams._parameters|merge({
+            data_in: form.appendCustomRelated.vars.value|split(',')
+        })
+    }) %}
+{% endif %}
+{% if form.removeCustomRelated.vars.value is not empty %}
+    {% set relatedGridParams = relatedGridParams|merge({
+        _parameters: relatedGridParams._parameters|merge({
+            data_not_in: form.appendCustomRelated.vars.value|split(',')
+        })
+    }) %}
+{% endif %}
+<div id="customrelated-products-block" class="tab-content">
+    {{ form_widget(form.appendCustomRelated, {'id': 'productAppendCustomRelated'}) }}
+    {{ form_widget(form.removeCustomRelated, {'id': 'productRemoveCustomRelated'}) }}
+    {{ placeholder('ibnab_customrelated_related_ibnab_customrelateds_buttons', {
+        'entity':  entity,
+        'relatedProductsLimit': -1,
+        'gridName': gridName
+    }) }}
+    {{ dataGrid.renderGrid(gridName, relatedGridParams, {cssClass: 'inner-grid'}) }}
+    {{ placeholder('ibnab_customrelated_related_items_edit', {'entity': entity}) }}
+</div>

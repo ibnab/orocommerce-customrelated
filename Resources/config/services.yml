@@ -1,0 +1,44 @@
+services: 
+    ibnab_customrelated.related_item.product.assigner_strategy:
+        public: false
+        class: Ibnab\Bundle\CustomRelatedBundle\RelatedItem\AssignerDatabaseStrategy
+        arguments: ['@oro_entity.doctrine_helper']
+
+    ibnab_customrelated.related_item.product.finder_strategy:
+        class: Ibnab\Bundle\CustomRelatedBundle\RelatedItem\FinderDatabaseStrategy
+        arguments:
+            - '@oro_entity.doctrine_helper'
+    Ibnab\Bundle\CustomRelatedBundle\RelatedItem\FinderDatabaseStrategy:
+        alias: ibnab_customrelated.related_item.product.finder_strategy
+    ibnab_customrelated.related_item.related_customrelated.assigner_strategy:
+        public: false
+        class: Ibnab\Bundle\CustomRelatedBundle\RelatedItem\AssignerDatabaseStrategy
+        arguments: ['@oro_entity.doctrine_helper']
+        
+    ibnab_customrelated.event_listener.related_customrelated_edit_listener:
+        class: Ibnab\Bundle\CustomRelatedBundle\EventListener\RelatedCustomRelatedEditListener
+        arguments:
+            - '@translator'
+            - '@security.authorization_checker'
+            - '@ibnab_customrelated.service.related_items_handler'
+            
+        tags:
+            - { name: kernel.event_listener, event: oro_ui.scroll_data.before.product-edit, method: onProductEdit }
+            - { name: kernel.event_listener, event: oro_ui.scroll_data.before.product-related-items-update, method: onProductEdit }
+            - { name: kernel.event_listener, event: oro.form.update_handler.before_form_data_set.oro_product, method: onFormDataSet }
+            - { name: kernel.event_listener, event: oro.form.update_handler.before_entity_flush.oro_product, method: onPostSubmit }
+            
+    ibnab_customrelated.service.related_items_handler:
+        class: 'Oro\Bundle\ProductBundle\Form\Handler\RelatedItemsHandler'
+        arguments:
+            - '@translator'
+        calls:
+            - [addAssigner, ['customrelatedProducts', '@ibnab_customrelated.related_item.related_customrelated.assigner_strategy']]
+    ibnab_customrelated.twig.product_extension:
+        class: Ibnab\Bundle\CustomRelatedBundle\Twig\ProductExtension
+        public: false
+        arguments:
+            - "@oro_platform.twig.service_locator"
+        tags:
+            - { name: twig.extension }
+            

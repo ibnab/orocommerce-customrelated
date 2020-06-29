@@ -1,0 +1,9 @@
+placeholders:
+    placeholders:
+        ibnab_customrelated_related_items_edit: ~
+        ibnab_customrelated_related_ibnab_customrelateds_buttons:
+            items:
+                ibnab_customrelated_select_related_customrelateds_button: ~
+    items:
+        ibnab_customrelated_select_related_customrelateds_button:
+            template: IbnabCustomRelatedBundle:CustomRelated:selectCustomRelatedButton.html.twig

@@ -1,0 +1,10 @@
+ibnab:
+    customrelated:
+        products:
+            label: Custom Related This Also Bought
+        tabs:
+            customrelatedProducts:
+                label: Custom Related
+        widgets:
+            select_products:
+                label: Select Custom Related

@@ -1,0 +1,5 @@
+ibnab_customrelated:
+    resource:     "@IbnabCustomRelatedBundle/Controller/ProductController.php"
+    type:         annotation
+    prefix:       /customrelatedproduct
+

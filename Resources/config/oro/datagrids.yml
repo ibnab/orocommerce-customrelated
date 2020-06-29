@@ -1,0 +1,204 @@
+datagrids:
+    products-customrelated-items-base:
+        extended_entity_name: 'Oro\Bundle\ProductBundle\Entity\Product'
+        options:
+            entityHint: oro.product.entity_plural_label
+        source:
+            type:         orm
+            query:
+                select:
+                    - product.id
+                    - product.sku
+                    - product.skuUppercase
+                    - product.createdAt
+                    - product.updatedAt
+                    - product.status
+                    - product.type
+                    - product.denormalizedDefaultName as productName
+                    - product.denormalizedDefaultNameUppercase as productNameUppercase
+                    - IDENTITY(product.inventory_status) as inventoryStatusId
+                from:
+                    - { table: 'Oro\Bundle\ProductBundle\Entity\Product', alias: product }
+        columns:
+            sku:
+                label:         oro.product.sku.label
+            productName:
+                label:         oro.product.names.label
+            inventoryStatusId:
+                label:         oro.product.inventory_status.label
+                choices:       "@oro_entity_extend.enum_value_provider->getEnumChoicesByCode('prod_inventory_status')"
+                frontend_type: select
+            status:
+                label:         oro.product.status.label
+                frontend_type: select
+                choices:       "@oro_product.provider.product_status_provider->getAvailableProductStatuses"
+            type:
+                label:         oro.product.type.label
+                frontend_type: select
+                choices:       "@oro_product.provider.product_type_provider->getAvailableProductTypes"
+                renderable:    false
+            createdAt:
+                label:         oro.ui.created_at
+                frontend_type: datetime
+            updatedAt:
+                label:         oro.ui.updated_at
+                frontend_type: datetime
+        properties:
+            id: ~
+        sorters:
+            columns:
+                sku:
+                    data_name: product.sku
+                productName:
+                    data_name: productName
+                status:
+                    data_name: product.status
+                type:
+                    data_name: product.type
+                createdAt:
+                    data_name: product.createdAt
+                updatedAt:
+                    data_name: product.updatedAt
+            default:
+                createdAt: DESC
+        filters:
+            columns:
+                sku:
+                    type:      string
+                    data_name: product.skuUppercase
+                    case_insensitive: false
+                    value_conversion: mb_strtoupper
+                productName:
+                    type:      string
+                    data_name: productNameUppercase
+                    case_insensitive: false
+                    value_conversion: mb_strtoupper
+                inventoryStatusId:
+                    type:      enum
+                    data_name: inventoryStatusId
+                    enum_code: prod_inventory_status
+                status:
+                    data_name: product.status
+                    type: choice
+                    options:
+                        field_options:
+                            choices: "@oro_product.provider.product_status_provider->getAvailableProductStatuses"
+                type:
+                    type: choice
+                    data_name: product.type
+                    options:
+                        field_options:
+                            choices: "@oro_product.provider.product_type_provider->getAvailableProductTypes"
+                createdAt:
+                    type:      datetime
+                    data_name: product.createdAt
+                updatedAt:
+                    type:      datetime
+                    data_name: product.updatedAt
+
+    products-customrelated-items-view:
+        extends: products-customrelated-items-base
+        source:
+            query:
+                where:
+                    and:
+                        - 'product.id IN(:relatedItemsIds)'
+            bind_parameters:
+                -
+                  name: relatedItemsIds
+                  default: []
+
+    products-customrelated-products-view:
+        extends: products-customrelated-items-view
+
+
+    products-customrelated-items-edit:
+        acl_resource: oro_product_update
+        extends: products-customrelated-items-base
+        options:
+            jsmodules:
+                - orodatagrid/js/datagrid/listener/action-form-listener
+                - oroproduct/js/app/datagrid/listener/related-product-listener
+        source:
+            query:
+                where:
+                    or:
+                        - 'product.id IN (:relatedItemsIds) AND product.id NOT IN (:data_not_in)'
+                        - '(product.id IN (:data_in)) AND product.id NOT IN (:data_not_in)'
+            bind_parameters:
+                -
+                  name: relatedItemsIds
+                  default: []
+        actions:
+            delete:
+                type:          frontend
+                label:         oro.grid.action.delete
+                icon:          trash
+                configuration:
+                    triggerAction: excludeRow
+#      @todo implement in scope of BB-10454
+#        mass_actions:
+#            delete:
+#                type: frontend
+#                label: oro.grid.action.delete
+#                icon: trash
+#                configuration:
+#                    triggerAction: excludeRow
+
+    products-customrelated-products-edit:
+        extends: products-customrelated-items-edit
+        options:
+            rowSelection:
+                dataField: id
+                columnName: isRelated
+                selectors:
+                    included: '#productAppendCustomRelated'
+                    excluded: '#productRemoveCustomRelated'
+
+    products-customrelated-items-select:
+        extends: products-select-grid-base-without-default-sorting
+        options:
+            entityHint: oro.product.entity_plural_label
+        source:
+            query:
+                select:
+                    - >
+                      (
+                        CASE WHEN (product.id IN (:relatedItemsIds) OR product.id IN (:data_in)) AND product.id NOT IN (:data_not_in)
+                        THEN true ELSE false END
+                      ) as isRelated
+                where:
+                    and:
+                        - product.id != :productId
+            bind_parameters:
+                - productId
+                -
+                  name: relatedItemsIds
+                  default: []
+        columns:
+            isRelated:
+                label: oro.product.is_related.label
+                frontend_type: boolean
+                editable: true
+                order: -10
+        filters:
+            columns:
+                isRelated:
+                    data_name: isRelated
+                    type:  boolean
+        sorters:
+            columns:
+                isRelated:
+                    data_name: isRelated
+            default:
+                isRelated: DESC
+
+    products-customrelated-products-select:
+        extends: products-customrelated-items-select
+        options:
+            rowSelection:
+                dataField: id
+                columnName: isRelated
+                selectors:
+                    included: '#productAppendCustomRelatedSelect'
+                    excluded: '#productRemoveCustomRelatedSelect'
